@@ -1,0 +1,87 @@
+docker swarm init - initites the docker swarm
+docker info - helps to see the information of the swarm mode
+docker node ls 
+docker node inspect self
+docker inspect <node_hostname>
+
+docker swarm manager
+ Responsibilities 
+    API  - Accepts commands from Service Object
+    Orchestrator - reconciliation loop that creates tasks for the service objects
+    Allocator - assigns IP addresses for the allocator.
+    dispatcher - assigns tasks to the nodes.
+    scheduler - instructs the worker node to run a task.
+
+
+service mesh - same port is exposed through multiple containers, 
+there is an internal load balancing solution which would take care of the 
+load balancing before hitting the containers. ALl of them are internally implemented and doesn't have to be 
+our implementation.
+
+
+ab -n 1000 -c 4 http://localhost:8093/getAllDepartments
+
+docker swarm leave
+    Error response from daemon: You are attempting to leave the swarm on a node that is participating as a manager. Removing the last manager erases all current state of the swarm. Use `--force` to ignore this message.
+docker swarm leave -f
+    Node left the swarm.
+
+export DOCKER_HOST=192.168.99.201
+docker info
+
+docker swarm init
+    Error response from daemon: could not choose an IP address to advertise since this system has multiple addresses on different interfaces (10.0.2.15 on enp0s3 and 192.168.99.201 on enp0s8) - specify one with --advertise-addr
+docker swarm init --advertise-addr 192.168.99.201
+    Swarm initialized: current node (c300iref96sie39iukan2frre) is now a manager.
+
+    To add a worker to this swarm, run the following command:
+        docker swarm join --token SWMTKN-1-5erobntzmrat2u6p5zc93o9ulcr52dwo17eb390lxjqhercvr0-683ujvuf274acs8qhnl192pte 192.168.99.201:2377
+        To add a manager to this swarm, run 'docker swarm join-token manager' and follow the instructions.
+** can use rotate token option to rotate tokens, in the production envioronments.Existing & connected nodes
+has no problems, but to connect new nodes we have to use the newly generated tokens.
+
+
+export DOCKER_HOST=192.168.99.201
+docker swarm join-token manager
+    To add a manager to this swarm, run the following command:
+
+docker swarm join --token SWMTKN-1-5erobntzmrat2u6p5zc93o9ulcr52dwo17eb390lxjqhercvr0-5qew2b2o1s2vwtpovsi0uvltm 192.168.99.201:2377
+
+BNG-179582-C02X6150JGH8:docker-swarm-mode-getting-started Charan_Thota$ docker swarm join-token worker
+To add a worker to this swarm, run the following command:
+
+    docker swarm join --token SWMTKN-1-5erobntzmrat2u6p5zc93o9ulcr52dwo17eb390lxjqhercvr0-683ujvuf274acs8qhnl192pte 192.168.99.201:2377
+
+docker service create \
+  --name=viz \
+  --publish=8090:8080/tcp \
+  --constraint=node.role==manager \
+  --mount=type=bind,src=/var/run/docker.sock,dst=/var/run/docker.sock \
+  dockersamples/visualizer
+
+docker service create --mode global --name cadvisor \
+  --mount type=bind,source=/,target=/rootfs,readonly=true  \
+  --mount type=bind,source=/var/run,target=/var/run,readonly=false \
+  --mount type=bind,source=/sys,target=/sys,readonly=true \
+  --mount type=bind,source=/var/lib/docker/,target=/var/lib/docker,readonly=true  \
+  --publish 8070:8080 google/cadvisor:latest
+
+
+192.168.99.201 - M1
+192.168.99.211 - W1
+
+
+docker service update --publish-rm 8080 cadvisor -- remove published node on the service. the port used is published from the container.
+
+updating to host mode only...
+docker service update --publish-add mode=host,published=8070,target=8080 cadvisor
+
+to deploy
+docker stack deploy -c viz.yml viz
+
+docker stack ls
+
+
+health API
+
+secrets
